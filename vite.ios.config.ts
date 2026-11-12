@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 /** Static bundle the iOS shell loads. No server, no auth, just the keyboard. */
 export default defineConfig({
+  base: "./",
   plugins: [tailwindcss(), viteReact()],
   resolve: { tsconfigPaths: true },
   build: {
