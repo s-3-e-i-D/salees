@@ -1,0 +1,58 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "ios-native/**"
+      - "src/**"
+      - "ios.html"
+      - "vite.ios.config.ts"
+      - ".github/workflows/build-ipa.yml"
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Build the keyboard bundle
+        run: npm ci && npm run build:ios
+      - name: Copy the bundle into the iOS targets
+        run: |
+          set -euo pipefail
+          rm -rf ios-native/Salees/web ios-native/SaleesKeyboard/web
+          mkdir -p ios-native/Salees/web ios-native/SaleesKeyboard/web
+          cp -R dist-ios/. ios-native/Salees/web/
+          cp -R dist-ios/. ios-native/SaleesKeyboard/web/
+      - name: Generate the Xcode project
+        working-directory: ios-native
+        run: xcodegen generate
+      - name: Build an unsigned IPA
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios-native/Salees.xcodeproj -scheme Salees -configuration Release \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+          APP="$(find "$RUNNER_TEMP/dd/Build/Products" -name 'Salees.app' -path '*iphoneos*' | head -1)"
+          test -n "$APP"
+          rm -rf "$RUNNER_TEMP/Payload"
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          (cd "$RUNNER_TEMP" && zip -qry "$GITHUB_WORKSPACE/Salees.ipa" Payload)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Salees-ipa
+          path: Salees.ipa
+          if-no-files-found: error

@@ -1,0 +1,50 @@
+name: Salees
+options:
+  bundleIdPrefix: app.salees
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  SWIFT_VERSION: "5.0"
+  IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+  CODE_SIGNING_ALLOWED: NO
+  CODE_SIGNING_REQUIRED: NO
+  CODE_SIGN_IDENTITY: ""
+  CODE_SIGN_STYLE: Manual
+targets:
+  Salees:
+    type: application
+    platform: iOS
+    sources:
+      - path: Salees
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: app.salees.keyboard
+      PRODUCT_NAME: Salees
+      INFOPLIST_FILE: Salees/Info.plist
+      GENERATE_INFOPLIST_FILE: NO
+      TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - target: SaleesKeyboard
+        embed: true
+        codeSign: false
+  SaleesKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SaleesKeyboard
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: app.salees.keyboard.keyboard
+      PRODUCT_NAME: SaleesKeyboard
+      INFOPLIST_FILE: SaleesKeyboard/Info.plist
+      GENERATE_INFOPLIST_FILE: NO
+      TARGETED_DEVICE_FAMILY: "1,2"
+      SKIP_INSTALL: YES
+schemes:
+  Salees:
+    build:
+      targets:
+        Salees: all
+    run:
+      config: Release
+    archive:
+      config: Release

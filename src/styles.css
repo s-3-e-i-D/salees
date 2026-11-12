@@ -134,6 +134,23 @@
     background: transparent;
     color: #fff;
   }
+  .kb-shell.is-system {
+    max-width: none;
+    background: var(--color-board);
+  }
+  .kb-shell.is-system .kb-key {
+    height: 2.35rem;
+    font-size: 1.15rem;
+  }
+  .kb-shell.is-system .kb-pad {
+    gap: 0.28rem;
+    padding-top: 0.2rem;
+    padding-bottom: 0.15rem;
+  }
+  .kb-shell.is-system .kb-dock {
+    min-height: 2.5rem;
+    padding-bottom: 0.2rem;
+  }
   .kb-dock-btn.is-on {
     color: var(--color-accent);
   }

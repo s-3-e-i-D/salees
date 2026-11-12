@@ -33,6 +33,35 @@ type Gesture = {
   committed?: string;
 };
 
+type SaleesHost = {
+  postMessage: (body: { delete: number; insert: string }) => void;
+};
+
+function saleesHost() {
+  const bridge = (
+    window as Window & { webkit?: { messageHandlers?: { salees?: SaleesHost } } }
+  ).webkit?.messageHandlers?.salees;
+  return bridge ?? null;
+}
+
+function hostDiff(prev: string, next: string) {
+  let prefix = 0;
+  const maxPrefix = Math.min(prev.length, next.length);
+  while (prefix < maxPrefix && prev[prefix] === next[prefix]) prefix += 1;
+  let suffix = 0;
+  while (
+    suffix < prev.length - prefix &&
+    suffix < next.length - prefix &&
+    prev[prev.length - 1 - suffix] === next[next.length - 1 - suffix]
+  ) {
+    suffix += 1;
+  }
+  return {
+    delete: prev.length - prefix - suffix,
+    insert: next.slice(prefix, next.length - suffix),
+  };
+}
+
 export function SaleesApp() {
   const [text, setText] = useState("");
   const [sel, setSel] = useState<Sel>({ start: 0, end: 0 });
@@ -49,6 +78,7 @@ export function SaleesApp() {
   const [listening, setListening] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [systemKb, setSystemKb] = useState(false);
   const [downId, setDownId] = useState<string | null>(null);
   const [pop, setPop] = useState<Pop | null>(null);
   const [variant, setVariant] = useState<VariantUi | null>(null);
@@ -69,6 +99,8 @@ export function SaleesApp() {
   const repeatRef = useRef(0);
   const longRef = useRef(0);
   const lastShift = useRef(0);
+  const systemRef = useRef(false);
+  const applyingHost = useRef(false);
 
   const rows = boardRows(alpha, page);
   keyByIdRef.current = new Map(rows.flatMap((row) => row.keys.map((key) => [key.id, key])));
@@ -121,10 +153,15 @@ export function SaleesApp() {
   }
 
   function commitEdit(nextText: string, caret: number) {
+    const prev = textRef.current;
     textRef.current = nextText;
     selRef.current = { start: caret, end: caret };
     setText(nextText);
     setSel(selRef.current);
+    if (!systemRef.current || applyingHost.current) return;
+    const change = hostDiff(prev, nextText);
+    if (change.delete === 0 && change.insert === "") return;
+    saleesHost()?.postMessage(change);
   }
 
   function remember(raw: string) {
@@ -394,6 +431,25 @@ export function SaleesApp() {
     }, 1000);
     return () => window.clearInterval(timer);
   }, [hydrated]);
+
+  useEffect(() => {
+    const on = saleesHost() != null;
+    systemRef.current = on;
+    setSystemKb(on);
+    const host = window as Window & {
+      __saleesHost?: (payload: { before?: string; after?: string }) => void;
+    };
+    host.__saleesHost = (payload) => {
+      const before = payload.before ?? "";
+      const after = payload.after ?? "";
+      applyingHost.current = true;
+      commitEdit(before + after, before.length);
+      applyingHost.current = false;
+    };
+    return () => {
+      delete host.__saleesHost;
+    };
+  }, []);
 
   useEffect(() => {
     let stopped = false;
@@ -713,9 +769,12 @@ export function SaleesApp() {
     <div className="flex h-dvh justify-center bg-stage">
       <div
         dir={ar ? "rtl" : "ltr"}
-        className="kb-shell flex h-full min-h-0 w-full max-w-[480px] flex-col overflow-hidden bg-paper sm:border-x sm:border-line"
+        className={
+          "kb-shell flex h-full min-h-0 w-full max-w-[480px] flex-col overflow-hidden bg-paper sm:border-x sm:border-line" +
+          (systemKb ? " is-system" : "")
+        }
       >
-        <header className="flex items-center justify-between gap-3 px-4 pt-4 pb-2">
+        <header className={"flex items-center justify-between gap-3 px-4 pt-4 pb-2" + (systemKb ? " hidden" : "")}>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-semibold text-accent-ink">
@@ -762,7 +821,7 @@ export function SaleesApp() {
           </div>
         </header>
 
-        <div className="relative min-h-16 flex-1 basis-0">
+        <div className={systemKb ? "hidden" : "relative min-h-16 flex-1 basis-0"}>
           {clipsOn ? (
             <ClipSheet
               clips={clips}
