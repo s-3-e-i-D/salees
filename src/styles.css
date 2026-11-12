@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans Arabic", "Geeza Pro", "Segoe UI", sans-serif;
+  --color-stage: #070708;
+  --color-paper: #121214;
+  --color-ink: #f4f4f5;
+  --color-muted: #9b9ba3;
+  --color-board: #1c1c1e;
+  --color-key: #636368;
+  --color-key-ink: #f7f7f8;
+  --color-special: #3a3a3e;
+  --color-special-ink: #f4f4f5;
+  --color-down: #f2f2f7;
+  --color-down-ink: #1c1c1e;
+  --color-accent: #0a84ff;
+  --color-accent-ink: #ffffff;
+  --color-line: #34343a;
+  --color-chip: #242428;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-stage);
+    color: var(--color-ink);
+    overflow: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  textarea {
+    font-family: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kb-key,
+    .kb-pop,
+    .kb-toast {
+      transition: none !important;
+    }
+  }
+}
+
+@layer components {
+  .kb-shell {
+    overscroll-behavior: none;
+  }
+  .kb-board,
+  .kb-pad,
+  .kb-row,
+  .kb-key,
+  .kb-dock {
+    touch-action: manipulation;
+  }
+  .kb-pad {
+    display: flex;
+    flex-direction: column;
+    gap: min(0.42rem, 1.1dvh);
+    padding-top: min(0.4rem, 1dvh);
+    padding-bottom: min(0.35rem, 1dvh);
+  }
+  .kb-key.is-space {
+    font-size: 0.95rem;
+  }
+  .kb-key.is-pair {
+    font-size: 0.85rem;
+    letter-spacing: -0.04em;
+  }
+  .kb-row {
+    display: flex;
+    gap: 0.4rem;
+    padding-inline: 0.3rem;
+  }
+  .kb-key {
+    flex: 1 1 0;
+    min-width: 0;
+    height: min(3.05rem, 12dvh);
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--color-key);
+    color: var(--color-key-ink);
+    font-family: inherit;
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
+    transition:
+      background-color 60ms ease-out,
+      color 60ms ease-out,
+      transform 60ms ease-out;
+  }
+  .kb-key.is-special {
+    background: var(--color-special);
+    color: var(--color-special-ink);
+    font-size: 0.95rem;
+  }
+  .kb-key.is-down {
+    background: var(--color-down);
+    color: var(--color-down-ink);
+    transform: scale(0.92);
+    box-shadow: 0 0 0 2px color-mix(in srgb, white 55%, transparent);
+  }
+  .kb-key:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+  .kb-dock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: min(4.2rem, 16dvh);
+    padding: 0.15rem 1.35rem max(0.45rem, env(safe-area-inset-bottom));
+    background: #000;
+  }
+  .kb-dock-btn {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #fff;
+  }
+  .kb-dock-btn.is-on {
+    color: var(--color-accent);
+  }
+  @media (orientation: landscape) and (max-height: 520px) {
+    .kb-shell header {
+      padding-top: 0.3rem;
+      padding-bottom: 0.1rem;
+    }
+    .kb-shell header p {
+      display: none;
+    }
+    .kb-suggest {
+      height: 2rem;
+    }
+    .kb-key {
+      height: min(2.05rem, 8dvh);
+      font-size: min(1.2rem, 4.2dvh);
+    }
+    .kb-pad {
+      gap: 0.2rem;
+      padding-top: 0.12rem;
+      padding-bottom: 0.08rem;
+    }
+    .kb-dock {
+      min-height: 2.15rem;
+      padding-top: 0;
+      padding-bottom: max(0.12rem, env(safe-area-inset-bottom));
+    }
+    .kb-dock-btn {
+      width: 2.1rem;
+      height: 2.1rem;
+    }
+  }
+  .kb-pop {
+    position: fixed;
+    z-index: 50;
+    pointer-events: none;
+    transform: translate(-50%, -118%);
+    min-width: 2.6rem;
+    padding: 0.35rem 0.7rem 0.85rem;
+    border-radius: 0.7rem;
+    background: var(--color-down);
+    color: var(--color-down-ink);
+    font-size: 1.7rem;
+    font-weight: 500;
+    line-height: 1.1;
+    text-align: center;
+    box-shadow: 0 10px 24px color-mix(in srgb, black 45%, transparent);
+  }
+  .kb-pop.is-wide {
+    font-size: 1.15rem;
+    padding-inline: 0.9rem;
+    max-width: 14rem;
+  }
+  .kb-variants {
+    position: fixed;
+    z-index: 60;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.3rem;
+    border-radius: 0.7rem;
+    background: var(--color-down);
+    box-shadow: 0 10px 24px color-mix(in srgb, black 45%, transparent);
+    transform: translate(-50%, -115%);
+  }
+  .kb-variant {
+    min-width: 2.4rem;
+    height: 2.6rem;
+    border: 0;
+    border-radius: 0.45rem;
+    background: transparent;
+    color: var(--color-down-ink);
+    font-family: inherit;
+    font-size: 1.25rem;
+  }
+  .kb-variant.is-on {
+    background: var(--color-key);
+    color: var(--color-key-ink);
+  }
+  .kb-toast {
+    animation: kb-toast-in 180ms ease-out;
+  }
+  @keyframes kb-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
