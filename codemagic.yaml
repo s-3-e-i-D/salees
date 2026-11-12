@@ -1,0 +1,42 @@
+workflows:
+  salees-ipa:
+    name: Salees IPA
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      node: 22
+    scripts:
+      - name: Build the keyboard bundle
+        script: |
+          set -e
+          npm ci
+          npm run build:ios
+          npx cap add ios
+      - name: Archive an unsigned IPA
+        script: |
+          set -euo pipefail
+          PLIST="ios/App/App/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName سَلِس" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string المايك يحوّل الصوت إلى نص داخل سَلِس" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :NSSpeechRecognitionUsageDescription string التعرف على الكلام يكتب اللي تقوله" "$PLIST" || true
+          cd ios/App
+          if [ -d App.xcworkspace ]; then
+            TARGET=(-workspace App.xcworkspace)
+          else
+            TARGET=(-project App.xcodeproj)
+          fi
+          xcodebuild "${TARGET[@]}" -scheme App -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive
+          APP="$(find "$CM_BUILD_DIR/App.xcarchive/Products/Applications" -name '*.app' -maxdepth 1 | head -1)"
+          rm -rf "$CM_BUILD_DIR/Payload"
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -R "$APP" "$CM_BUILD_DIR/Payload/"
+          (cd "$CM_BUILD_DIR" && zip -qry "$CM_BUILD_DIR/Salees.ipa" Payload)
+    artifacts:
+      - Salees.ipa
