@@ -1,0 +1,51 @@
+name: Build Salees IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unpack Salees iOS Project if zipped
+        run: |
+          if [ -f "salees-ios-ipa.zip" ]; then
+            unzip -o salees-ios-ipa.zip
+          fi
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Unsigned iOS App
+        run: |
+          xcodebuild clean build \
+            -project Salees.xcodeproj \
+            -scheme Salees \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package Salees.ipa
+        run: |
+          mkdir -p Payload
+          APP_PATH=$(find build -name "Salees.app" -type d | head -n 1)
+          cp -R "$APP_PATH" Payload/
+          zip -r9 Salees.ipa Payload
+
+      - name: Upload Salees.ipa Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Salees-IPA
+          path: Salees.ipa
+          if-no-files-found: error
