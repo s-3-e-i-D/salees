@@ -10,6 +10,8 @@ attachments
 AGENTS.md
 .env
 .env.*
-dist
-.output
+dist-ios
+ios
+android
+
 *.log

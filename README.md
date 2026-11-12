@@ -1,12 +1,11 @@
 # سَلِس
 
-Arabic and English predictive keyboard with a dark iPhone-style layout, word suggestions, swipe typing, and a three-minute clipboard.
+كيبورد عربي وإنجليزي. ملف IPA غير الموقّع يطلع من GitHub Actions (تبويب Actions، ثم iOS IPA).
 
-This repository is the web app. It runs in the browser and can be added to an iPhone home screen.
+التثبيت على الآيفون يحتاج توقيع بحساب آبل حقك، لأن آبل ما تقبل ملف غير موقّع:
 
-An `.ipa` is not in this repo. A real iPhone install package has to be archived and signed in Xcode with an Apple Developer account, which cannot be done from this project as it stands.
+1. نزّل `Salees.ipa` من آخر تشغيل ناجح، أو من Releases.
+2. ثبّته بـ [SideStore](https://sidestore.io) أو [AltStore](https://altstore.io) وسجّل دخول بحساب آبل.
+3. الإعدادات، عام، VPN وإدارة الجهاز، ثق بالشهادة. على iOS 16 وبعدها فعّل Developer Mode.
 
-```bash
-npm install
-npm run dev
-```
+حساب آبل المجاني يخلّي التطبيق ٧ أيام. هذا التطبيق يفتح سَلِس لحاله، وما يستبدل كيبورد واتساب.
